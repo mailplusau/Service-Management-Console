@@ -6,8 +6,8 @@
  *
  * Remarks: Page to review all the item lists and service records. Change the price or create package or add new service types         
  * 
- * @Last Modified by:   ankith.ravindran
- * @Last Modified time: 2019-05-07 11:42:24
+ * @Last Modified by:   Ankith
+ * @Last Modified time: 2019-12-11 13:54:52
  *
  */
 
@@ -77,8 +77,10 @@ function main(request, response) {
 
         if (isNullorEmpty(request.getParameter('custid'))) {
             var custid = parseInt(params.custid);
+            var servicechange = parseInt(params.servicechange);
         } else {
             var custid = request.getParameter('custid');
+            var servicechange = 'F';
         }
 
         nlapiLogExecution('DEBUG', 'custid', custid);
@@ -267,6 +269,7 @@ function main(request, response) {
 
 
             form.addField('customer', 'text', 'Customer').setDisplayType('hidden').setDefaultValue(custid);
+            form.addField('servicechange', 'text', 'servicechange').setDisplayType('hidden').setDefaultValue(servicechange);
             form.addField('financial_item_array', 'textarea', 'Financial').setDisplayType('hidden');
             form.addField('financial_price_array', 'textarea', 'Financial').setDisplayType('hidden');
             form.addField('lon_array', 'textarea', 'Longitude').setDisplayType('hidden');
@@ -514,6 +517,7 @@ function main(request, response) {
 
 
         var customer = parseInt(request.getParameter('customer'));
+        var servicechange = parseInt(request.getParameter('servicechange'));
         var no_service_typs_ids = request.getParameter('custpage_ids');
         var linked_service_ids = request.getParameter('linked_custpage_ids');
         var financial_tab_item_array = request.getParameter('financial_item_array');
@@ -536,7 +540,12 @@ function main(request, response) {
          */
         var status = nlapiScheduleScript('customscript_sc_smc_item_pricing_update', 'customdeploy1', params3);
         if (status == 'QUEUED') {
-            nlapiSetRedirectURL('SUITELET', 'customscript_sl_smc_summary', 'customdeploy_sl_smc_summary', null, null);
+            if(isNullorEmpty(servicechange) || servicechange == 'F'){
+                nlapiSetRedirectURL('SUITELET', 'customscript_sl_smc_summary', 'customdeploy_sl_smc_summary', null, null);
+            } else {
+                nlapiSetRedirectURL('SUITELET', 'customscript_sl_servchg_customer_list', 'customdeploy_sl_servchg_customer_list', null, null);
+            }
+            
             return false;
         }
     }

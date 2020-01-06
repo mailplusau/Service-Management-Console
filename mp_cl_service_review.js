@@ -6,8 +6,8 @@
  *
  * Remarks:  Client script for the Item Pricing Page       
  * 
- * @Last Modified by:   ankith.ravindran
- * @Last Modified time: 2019-05-07 11:42:26
+ * @Last Modified by:   Ankith
+ * @Last Modified time: 2019-12-11 13:54:48
  *
  */
 
@@ -131,7 +131,7 @@ function pageInit() {
         var lon = searchResult.getValue('custrecord_address_lon', 'Address', null);
         var default_shipping = searchResult.getValue('isdefaultshipping', 'Address', null);
         var default_billing = searchResult.getValue('isdefaultbilling', 'Address', null);
-        var notaservice = searchResult.getValue("custrecord_not_a_service_address","Address",null);
+        var notaservice = searchResult.getValue("custrecord_not_a_service_address", "Address", null);
 
 
         //If the billing address does not have the lat/lng field set then hide all the other sections
@@ -397,7 +397,13 @@ function clientFieldChanged(type, name, linenum) {
 
 //Goes to the main page
 function onclick_back() {
-    var upload_url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_smc_summary', 'customdeploy_sl_smc_summary');
+    if (nlapiGetFieldValue('servicechange') == 'T') {
+        var upload_url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_servchg_customer_list', 'customdeploy_sl_servchg_customer_list');
+    } else {
+        var upload_url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_smc_summary', 'customdeploy_sl_smc_summary');
+
+    }
+
     window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
 }
 
