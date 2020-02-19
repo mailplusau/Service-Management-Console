@@ -6,8 +6,8 @@
  *
  * Remarks: Client script for the Item pricing Review Main page         
  * 
- * @Last Modified by:   mailplusar
- * @Last Modified time: 2019-05-07 11:44:44
+ * @Last Modified by:   Ankith
+ * @Last Modified time: 2020-02-18 15:37:17
  *
  */
 
@@ -78,6 +78,7 @@ function onclick_reviewPage(custid) {
 
 	var params = {
 		custid: custid,
+		servicechange: 0
 	}
 	params = JSON.stringify(params);
 

@@ -7,7 +7,7 @@
  * Remarks: Page to review all the item lists and service records. Change the price or create package or add new service types         
  * 
  * @Last Modified by:   Ankith
- * @Last Modified time: 2019-12-11 13:54:52
+ * @Last Modified time: 2020-02-18 15:36:14
  *
  */
 
@@ -76,9 +76,16 @@ function main(request, response) {
         params = JSON.parse(params);
 
         if (isNullorEmpty(request.getParameter('custid'))) {
+            nlapiLogExecution('DEBUG', 'params.servicechange', params.servicechange)
             var custid = parseInt(params.custid);
-            var servicechange = parseInt(params.servicechange);
+            if(!isNullorEmpty(params.servicechange)){
+                var servicechange = parseInt(params.servicechange);
+            } else {
+                var servicechange = 0;
+            }
+            
         } else {
+
             var custid = request.getParameter('custid');
             var servicechange = 'F';
         }
@@ -539,11 +546,12 @@ function main(request, response) {
          * Description - Schedule Script to create / edit / delete the financial tab items with the new details
          */
         var status = nlapiScheduleScript('customscript_sc_smc_item_pricing_update', 'customdeploy1', params3);
+        nlapiLogExecution('DEBUG',servicechange)
         if (status == 'QUEUED') {
-            if(isNullorEmpty(servicechange) || servicechange == 'F'){
+            if(isNullorEmpty(servicechange) || servicechange == 'F' || servicechange == 0){
                 nlapiSetRedirectURL('SUITELET', 'customscript_sl_smc_summary', 'customdeploy_sl_smc_summary', null, null);
             } else {
-                nlapiSetRedirectURL('SUITELET', 'customscript_sl_servchg_customer_list', 'customdeploy_sl_servchg_customer_list', null, null);
+                 nlapiSetRedirectURL('SUITELET', 'customscript_sl_servchg_customer_list', 'customdeploy_sl_servchg_customer_list', null, null);
             }
             
             return false;
