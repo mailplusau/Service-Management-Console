@@ -14,7 +14,7 @@
 //var baseURL = getDataCenterURL_systemURL();
 var baseURL = 'https://1048144.app.netsuite.com';
 if (nlapiGetContext().getEnvironment() == "SANDBOX") {
-    baseURL = 'https://system.sandbox.netsuite.com';
+    baseURL = 'https://1048144-sb3.app.netsuite.com';
 }
 var zee = 0;
 var role = nlapiGetRole();
@@ -38,7 +38,7 @@ function getDataCenterURL_systemURL() {
     /* The variable above was properly escaped and has no line breaks, apparently using the nlapiEscapeXML() does not resolve this because this is declared as a String not an XML type */
 
     var sUrl = "https://webservices.netsuite.com/services/NetSuitePort_2014_2"
-    /* use the latest webservice URL to call the getDataCenterURLs command. */
+        /* use the latest webservice URL to call the getDataCenterURLs command. */
 
     resp = nlapiRequestURL(sUrl, xml, headers); // creates and calls the web service request
 
@@ -78,12 +78,12 @@ function main(request, response) {
         if (isNullorEmpty(request.getParameter('custid'))) {
             nlapiLogExecution('DEBUG', 'params.servicechange', params.servicechange)
             var custid = parseInt(params.custid);
-            if(!isNullorEmpty(params.servicechange)){
+            if (!isNullorEmpty(params.servicechange)) {
                 var servicechange = parseInt(params.servicechange);
             } else {
                 var servicechange = 0;
             }
-            
+
         } else {
 
             var custid = request.getParameter('custid');
@@ -125,7 +125,7 @@ function main(request, response) {
             // if (!isNullorEmpty(scID)) {
             //     var admin_fees_customer = scID;
             // } else {
-                var admin_fees_customer = custid;
+            var admin_fees_customer = custid;
             // }
 
             newFilters = [
@@ -311,7 +311,7 @@ function main(request, response) {
             var service_type_search = serviceTypeSearch(null, [1]);
             for (var x = 0; x < service_type_search.length; x++) {
                 // if (service_type_search[x].getValue('internalid') != 21) {
-                    service_type_select.addSelectOption(service_type_search[x].getValue('internalid'), service_type_search[x].getValue('name'));
+                service_type_select.addSelectOption(service_type_search[x].getValue('internalid'), service_type_search[x].getValue('name'));
                 // }
 
             }
@@ -542,20 +542,49 @@ function main(request, response) {
             custscriptfinancial_tab_price_array: financial_tab_price_array.toString()
         }
 
+        //TO UPDATE THE GREEN TICK
+        //var start_time = Date.now();
+        nlapiLogExecution('DEBUG', 'customer', customer);
+        var customerScheduled = 1; //true
+        var serviceSearch = nlapiLoadSearch('customrecord_service', 'customsearch_rp_services');
+
+        var newFilters = new Array();
+        newFilters[newFilters.length] = new nlobjSearchFilter('custrecord_service_customer', null, 'is', customer);
+        serviceSearch.addFilters(newFilters);
+        var resultSetService = serviceSearch.runSearch();
+        resultSetService.forEachResult(function(searchResult) {
+            var scheduleRun = searchResult.getValue("custrecord_service_run_scheduled", null, "GROUP");
+            //nlapiLogExecution('DEBUG', 'scheduleRun', scheduleRun);
+            if (scheduleRun == 2 || isNullorEmpty(scheduleRun)) {
+                customerScheduled = 2; //false
+                return false;
+            }
+            return true;
+        });
+        nlapiLogExecution('DEBUG', 'customerScheduled', customerScheduled);
+        var customer_record = nlapiLoadRecord('customer', customer);
+        customer_record.setFieldValue('custentity_run_scheduled', customerScheduled);
+        nlapiSubmitRecord(customer_record);
+        //var end_time = Date.now();
+        //nlapiLogExecution('DEBUG', 'green tick time', end_time - start_time);
+
         /**
          * Description - Schedule Script to create / edit / delete the financial tab items with the new details
          */
         var status = nlapiScheduleScript('customscript_sc_smc_item_pricing_update', 'customdeploy1', params3);
-        nlapiLogExecution('DEBUG',servicechange)
+        nlapiLogExecution('DEBUG', servicechange)
         if (status == 'QUEUED') {
-            if(isNullorEmpty(servicechange) || servicechange == 'F' || servicechange == 0){
+            if (isNullorEmpty(servicechange) || servicechange == 'F' || servicechange == 0) {
                 nlapiSetRedirectURL('SUITELET', 'customscript_sl_smc_summary', 'customdeploy_sl_smc_summary', null, null);
             } else {
-                 nlapiSetRedirectURL('SUITELET', 'customscript_sl_servchg_customer_list', 'customdeploy_sl_servchg_customer_list', null, null);
+                nlapiSetRedirectURL('SUITELET', 'customscript_sl_servchg_customer_list', 'customdeploy_sl_servchg_customer_list', null, null);
             }
-            
+
             return false;
         }
+
+
+
     }
 }
 

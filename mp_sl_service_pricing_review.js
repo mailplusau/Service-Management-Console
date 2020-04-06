@@ -30,7 +30,7 @@ var ctx = nlapiGetContext();
 
 var baseURL = 'https://1048144.app.netsuite.com';
 if (nlapiGetContext().getEnvironment() == "SANDBOX") {
-  baseURL = 'https://system.sandbox.netsuite.com';
+  baseURL = 'https://1048144-sb3.app.netsuite.com';
 }
 
 
