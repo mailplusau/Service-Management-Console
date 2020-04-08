@@ -59,7 +59,7 @@ function pageInit() {
 
 }
 
-$(document).on('click', '.instruction_button', function(e) {
+/*$(document).on('click', '.instruction_button', function(e) {
 
     var mainTable2 = document.getElementsByClassName("uir-inline-tag");
     for (var i = 0; i < mainTable2.length; i++) {
@@ -70,8 +70,32 @@ $(document).on('click', '.instruction_button', function(e) {
     }
 
     $('.admin_section').css("top", "520px");
-    $('.instruction_button').hide();
-});
+    //$('.instruction_button').hide();
+});*/
+
+$('.collapse').on('shown.bs.collapse', function() {
+    var mainTable2 = document.getElementsByClassName("uir-inline-tag");
+    for (var i = 0; i < mainTable2.length; i++) {
+        mainTable2[i].style.position = "absolute";
+        mainTable2[i].style.left = "10%";
+        mainTable2[i].style.width = "80%";
+        mainTable2[i].style.top = "650px";
+    }
+
+    $('.admin_section').css("top", "600px");
+})
+
+$('.collapse').on('hide.bs.collapse', function() {
+    var mainTable2 = document.getElementsByClassName("uir-inline-tag");
+    for (var i = 0; i < mainTable2.length; i++) {
+        mainTable2[i].style.position = "absolute";
+        mainTable2[i].style.left = "10%";
+        mainTable2[i].style.width = "80%";
+        mainTable2[i].style.top = "275px";
+    }
+
+    $('.admin_section').css("top", "200px");
+})
 
 //On click of review goes to the review page
 function onclick_reviewPage(custid) {
