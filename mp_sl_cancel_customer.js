@@ -14,9 +14,9 @@ function cancel_customer(request, response){
 		
 		form.addField('customer_id', 'text', 'customer').setDisplayType('hidden').setDefaultValue(request.getParameter('custid'));
 
-		form.addField('cancel_date', 'date', 'SERVICE CANCELLATION DATE').setLayoutType('startrow').setMandatory(true);
-		form.addField('cancel_reason', 'select', 'SERVICE CANCELATION REASON', 'customlist58').setLayoutType('startrow').setMandatory(true);
-		form.addField('cancel_notice', 'select', 'SERVICE CANCELLATION NOTICE', 'customlist_cancellation_notice').setLayoutType('startrow');
+		form.addField('cancel_date', 'date', 'SERVICE CANCELLATION DATE').setLayoutType('startrow').setMandatory(true).setDefaultValue(getDate());
+		form.addField('cancel_reason', 'select', 'SERVICE CANCELATION REASON', 'customlist58').setLayoutType('startrow').setMandatory(true).setDefaultValue(38);
+		form.addField('cancel_notice', 'select', 'SERVICE CANCELLATION NOTICE', 'customlist_cancellation_notice').setLayoutType('startrow').setDefaultValue(12);
 		form.addField('cancel_competitor', 'select', 'SERVICE CANCELLATION COMPETITOR', 'customlist33').setLayoutType('startrow');
 		form.addField('cancel_notes', 'longtext', 'CANCELLATION NOTES').setLayoutType('startrow');
 		form.addSubmitButton('Cancel');
@@ -36,7 +36,7 @@ function cancel_customer(request, response){
 		recCustomer.setFieldValue('custentity_service_cancellation_notice',request.getParameter('cancel_notice'));
 		recCustomer.setFieldValue('custentity_service_cancellation_reason',request.getParameter('cancel_reason'));
 		recCustomer.setFieldValue('custentity14',request.getParameter('cancel_competitor'));
-		// recCustomer.setFieldValue('entitystatus',22);
+		recCustomer.setFieldValue('entitystatus',22);
 
 		nlapiSubmitRecord(recCustomer);
 
@@ -77,10 +77,10 @@ function cancel_customer(request, response){
 
 function getDate() {
     var date = new Date();
-    // if (date.getHours() > 6)
-    // {
-    //     date = nlapiAddDays(date, 1);
-    // }
+    if (date.getHours() > 6)
+    {
+        date = nlapiAddDays(date, 1);
+    }
     date = nlapiDateToString(date);
 
     return date;
