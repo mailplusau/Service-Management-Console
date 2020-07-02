@@ -530,6 +530,8 @@ function main(request, response) {
         var financial_tab_item_array = request.getParameter('financial_item_array');
         var financial_tab_price_array = request.getParameter('financial_price_array');
 
+        //Update the RunScheduled box for the customer
+        updateGreenTick(customer);
 
         /**
          * [params3 description] - Params passed to delete / edit / create the financial tab
@@ -541,32 +543,6 @@ function main(request, response) {
             custscriptfinancial_tab_array: financial_tab_item_array.toString(),
             custscriptfinancial_tab_price_array: financial_tab_price_array.toString()
         }
-
-        //TO UPDATE THE GREEN TICK
-        //var start_time = Date.now();
-        nlapiLogExecution('DEBUG', 'customer', customer);
-        var customerScheduled = 1; //true
-        var serviceSearch = nlapiLoadSearch('customrecord_service', 'customsearch_rp_services');
-
-        var newFilters = new Array();
-        newFilters[newFilters.length] = new nlobjSearchFilter('custrecord_service_customer', null, 'is', customer);
-        serviceSearch.addFilters(newFilters);
-        var resultSetService = serviceSearch.runSearch();
-        resultSetService.forEachResult(function(searchResult) {
-            var scheduleRun = searchResult.getValue("custrecord_service_run_scheduled", null, "GROUP");
-            //nlapiLogExecution('DEBUG', 'scheduleRun', scheduleRun);
-            if (scheduleRun == 2 || isNullorEmpty(scheduleRun)) {
-                customerScheduled = 2; //false
-                return false;
-            }
-            return true;
-        });
-        nlapiLogExecution('DEBUG', 'customerScheduled', customerScheduled);
-        var customer_record = nlapiLoadRecord('customer', customer);
-        customer_record.setFieldValue('custentity_run_scheduled', customerScheduled);
-        nlapiSubmitRecord(customer_record);
-        //var end_time = Date.now();
-        //nlapiLogExecution('DEBUG', 'green tick time', end_time - start_time);
 
         /**
          * Description - Schedule Script to create / edit / delete the financial tab items with the new details
@@ -610,4 +586,37 @@ function getStartDate() {
         startdate = nlapiAddDays(startdate, 2)
     }
     return nlapiDateToString(startdate);
+}
+
+/**
+ * Update the Run Scheduled box for the customer ie if the customer if fully scheduled or not
+ * @params {Int} Customer ID
+ */
+function updateGreenTick(customer_id) {
+    var customerScheduled = true;
+    var serviceSearch = nlapiLoadSearch('customrecord_service', 'customsearch_rp_services');
+
+    var newFilters = new Array();
+    newFilters[newFilters.length] = new nlobjSearchFilter('custrecord_service_customer', null, 'is', customer_id);
+    newFilters[newFilters.length] = new nlobjSearchFilter("internalid", "CUSTRECORD_SERVICE", 'noneof', 24); //ignore MPEX Pickup
+    serviceSearch.addFilters(newFilters);
+    var resultSetService = serviceSearch.runSearch();
+    resultSetService.forEachResult(function(searchResult) {
+        var scheduleRun = searchResult.getValue("custrecord_service_run_scheduled", null, "GROUP");
+        nlapiLogExecution('DEBUG', 'scheduleRun', scheduleRun);
+        if (scheduleRun == 2 || isNullorEmpty(scheduleRun)) {
+            customerScheduled = false;
+            return false;
+        }
+        return true;
+    });
+    nlapiLogExecution('DEBUG', 'customerScheduled', customerScheduled);
+    var customer_record = nlapiLoadRecord('customer', customer_id);
+    if (customerScheduled == true) {
+        customer_record.setFieldValue('custentity_run_scheduled', 1);
+    } else if (customerScheduled == false) {
+        customer_record.setFieldValue('custentity_run_scheduled', 2);
+    }
+    nlapiSubmitRecord(customer_record);
+
 }
