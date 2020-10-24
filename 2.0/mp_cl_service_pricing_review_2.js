@@ -59,7 +59,9 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             //Add datatable styling 
             $(document).ready(function () {
                 console.log("Running doc ready");
-                var customersTable = $('#customers-preview').DataTable();
+                var customersTable = $('#customers-preview').DataTable({
+                    "pageLength": 25
+                });
             });
 
             $(".edit_customer").on('click', onclick_reviewPage)

@@ -60,7 +60,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             inlinehtml2 += '<style>.mandatory{color:red;}</style>';
 
             inlinehtml2 += '<link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
-            
+        
 
             var htmlConstruct = form.addField({
                 id: 'custpage_html2',
@@ -70,6 +70,22 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             
             
             var inlineQty = '';
+
+
+            //Instructions
+            inlineQty += '<button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo">Click for Instructions</button>';
+            inlineQty += '<div id="demo" class="collapse" style="background-color:llightgrey;">';
+            inlineQty += '<u>IMPORTANT INSTRUCTIONS:</u> Functionalities available on the Customer listing/table:';
+            inlineQty += '<ul>';
+            inlineQty += '<li><b> Sort: </b> Click on column headers to sort customer list according to the values in the columns. This is default to "Customer Name".</li>';
+            inlineQty += '<li><b> Clickable Actions available per customer: </b></li>';
+            inlineQty += '<ul>';
+            inlineQty += '<li><b>UPLOAD SCF Button:</b> Available for customers with missing Service Commencement Forms (SCF) in the system. You will need to upload the latest signed SCF for each relevant customers which outlines the service commencement date along with the Service(s) and Price(s).</li>';
+            inlineQty += '<li><b> REVIEW button: </b> Review or Edit customer details (eg. Addresses, Service and Pricing, Packages) to set them up for Run Digitalisation</li>';
+            inlineQty += '<li><b> COVID CANCEL button: </b> You may Cancel non-active customers providing details and reasons around the Cancellation.</li>';
+            inlineQty += '<li><b> DO NOT NEED button: </b> To cancel customers with <b><u>Adhoc</u></b> arrangements.</li>';
+            inlineQty += '<li><b> Duplicate COMMREG: </b Please contact Head Office if you see this Action against any customer.</li>';
+            inlineQty += '</ul></ul></div>';
 
               //If role is Admin or System Support, dropdown to select zee
             if(role != 1000){
@@ -106,12 +122,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             }
         
 
-            // inlinehtml2 += '<div class="se-pre-con"></div><button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo">Click for Instructions</button><div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 10px 10px 10px 20px;width:96%;position:absolute" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b><ul><li>Functionalities available on the Customer listing/table:<ul><li><b>Sort</b><ul><li>Click on column headers to sort customer list according to the values in the columns. This is default to "Customer Name".</li><li>Hold "Shift" and click another column to sort according to multiple columns.</li></ul></li><li><b>Search</b><ul><li>You can search for specific customer by typing into the "Search" field</li></ul></li></ul></li><li>Clickable Actions available per customer:</li><ul><li><button class="btn-xs btn-default" disabled>UPLOAD SCF</button> - <ul><li>Available for customers with missing Service Commencement Forms (SCF) in the system. You will need to upload the latest signed SCF for each relevant customers which outlines the service commencement date along with the Service(s) and Price(s).</li></ul></li><li><button class="btn-xs btn-warning" disabled>REVIEW</button> / <button class="btn-xs btn-primary" disabled>EDIT</button> - <ul><li>Review or Edit customer details (eg. Addresses, Service and Pricing, Packages) to set them up for Run Digitalisation.</li><li>Any service added needs to be scheduled on the Run Scheduler.</li><li>Any service deleted will be removed from your run. It will no longer appear on the calendar and app.</li></ul></li><li><button class="btn-xs btn-danger" disabled>COVID CANCEL</button> - <ul><li>You may Cancel non-active customers providing details and reasons around the Cancellation.</li><li>You <b><u>DO NOT NEED</u></b> to cancel customers with <b><u>Adhoc</u></b> arrangements.</li></ul></li><li><button class="btn-xs btn-default" disabled>Duplicate COMMREG</button> - <ul><li>Please contact <b><u>Head Office</u></b> if you see this Action against any customer</li></ul></li></ul></li></ul></ul></div>';
 
-            
-            //Table for Franchisee Customers
-    
-            // inlineQty += '<br><br><style>table#customer {font-size:12px; font-weight:bold; border-color: #24385b;} </style><table border="0" cellpadding="15" id="customer" class="tablesorter table table-striped" cellspacing="0" style="width: 100%; margin:auto;"><thead style="color: white;background-color: #607799;"><tr><th class="col-sm-2"><b>REVIEW COMPLETE</b></th><th><b>ID</b></th><th><b>CUSTOMER NAME</b></th><th class="col-sm-4" style="text-align: center;"><b>ACTION</b></th></tr></thead><tbody>';
             inlineQty += '<style> table#customer {font-size: 14px;text-align: center;border: none; font-weight: bold;} table th{text-align: center;} </style>';
             inlineQty += '<div class="form-group container-fluid customers_preview_section">';
             inlineQty += '<table cellpadding="15" id="customers-preview" class="table table-responsive table-striped customer tablesorter" cellspacing="0">';
