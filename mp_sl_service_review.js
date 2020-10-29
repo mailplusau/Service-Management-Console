@@ -6,8 +6,8 @@
  *
  * Remarks: Page to review all the item lists and service records. Change the price or create package or add new service types         
  * 
- * @Last Modified by:   Ankith
- * @Last Modified time: 2020-03-11 13:30:32
+ * @Last Modified by:   ankit
+ * @Last Modified time: 2020-10-29 10:59:05
  *
  */
 
@@ -207,7 +207,7 @@ function main(request, response) {
 
         nlapiLogExecution('DEBUG', 'sctype', sc_type)
 
-        if (isNullorEmpty(sc_type) || sc_type == 2 || sc_type == 4) {
+        if (isNullorEmpty(sc_type) || parseInt(sc_type) == 2 || parseInt(sc_type) == 4) {
             inlinehtml2 += '<div class="se-pre-con"></div><div style=\"background-color: #cfeefc !important;border: 1px solid #e91e63;padding: 10px 10px 10px 20px;width:96%;position:absolute;font-size:12px"><b><u>Primary Objectives:</u></b><ul><li>Review Addresses to make sure all is up-to-date; and</li><li>Review Item Pricing and translate these into relevant core Service components\'</li></ul></div><br><br><br><br>';
 
             //Alert box to show the list of items that do not have any matched service type record. 
