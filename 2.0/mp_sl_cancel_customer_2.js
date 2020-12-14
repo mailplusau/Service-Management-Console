@@ -7,6 +7,8 @@
  * 
  * NSVersion    Date            		 Author         
  * 2.00       	2020-11-26 13:12:36      Ravija Maheshwari 
+ * 
+ * Last Modified: 2020-12-14 21:08:00 by Ravija Maheshewari
  */
 
 define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format', 'N/currentRecord'],
@@ -162,10 +164,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format, curren
                 details: typeof getDate()
             });
 
-            // noteRecord.setValue({
-            //     fieldId: 'notedate',
-            //     value: getDate(),
-            // });
+            noteRecord.setValue({
+                fieldId: 'notedate',
+                value: getDate(),
+            });
          
             
             noteRecord.save();
@@ -208,11 +210,13 @@ function(ui, email, runtime, search, record, http, log, redirect, format, curren
      * @return{​​​​​​​​[String]}​​​​​​​​ [description] - return the string date
     */
     function getDate() {​​​​​​​​
-        var date = new Date();
-        date = format.format({​​​​​​​​
-            value: date,
+        var today = new Date();
+
+        date = format.parse({​​​​​​​​
+            value: today,
             type: format.Type.DATE
         }​​​​​​​​);
+    
         return date;
     }​​​​​​​​
 
