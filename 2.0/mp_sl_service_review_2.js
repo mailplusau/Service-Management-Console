@@ -100,11 +100,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format, curren
                     fieldId: 'custentity_admin_fees'
                 });
 
-
                 var newFilters = new Array();
     
                 //Zee filter is used because Customer is owned by TEST and jobs for this customer belongs to both TEST and TEST-AR. So we pull out only the Admin Fees Service based on the zee logged in. 
-                //
+                
                 //WS: Zee filter put in place to prevent current franchisee from retrieving previous franchisee's admin fees.
                 //assumption: admin fee service record will not need to be replicated on new transfer workflow as AIC script already reads Account Admin Fee from customer record. 
                 var admin_fees_customer = custid;
@@ -179,11 +178,11 @@ function(ui, email, runtime, search, record, http, log, redirect, format, curren
              */
             var content = '';
             content += '<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA92XGDo8rx11izPYT7z2L-YPMMJ6Ih1s0&libraries=places"></script>';
-            var fld = form.addField({
-                id: 'mainfield',
-                label: 'inlinehtml',
-                type: ui.FieldType.INLINEHTML
-            }).setDefaultValue = content;
+                var fld = form.addField({
+                    id: 'mainfield',
+                    label: 'inlinehtml',
+                    type: ui.FieldType.INLINEHTML
+                }).setDefaultValue = content;
 
             var inlinehtml2 = '';
             inlinehtml2 += '<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js">';
@@ -423,11 +422,15 @@ function(ui, email, runtime, search, record, http, log, redirect, format, curren
                         value: recCustomer.getSublistText({sublistId:'itempricing', fieldId:'item', line: i-1})              
                     });
 
-                    sublistPricing.setSublistValue({
-                        id: 'itemprice',
-                        line: i-1,
-                        value: recCustomer.getSublistText({sublistId:'itempricing', fieldId:'price', line: i-1})       
-                    });
+                   
+                    if(!isNullorEmpty(recCustomer.getSublistText({sublistId:'itempricing', fieldId:'price', line: i-1}))){
+                        sublistPricing.setSublistValue({
+                            id: 'itemprice',
+                            line: i-1,
+                            value: recCustomer.getSublistText({sublistId:'itempricing', fieldId:'price', line: i-1})       
+                        });
+                    }
+                   
                 }
 
                 sublistPricing.addField({
@@ -920,6 +923,12 @@ function(ui, email, runtime, search, record, http, log, redirect, format, curren
             } 
             context.response.writePage(form);
         }else{
+
+            log.debug({
+                title: 'In else part',
+                details: '',
+            });
+
             var customer = parseInt(context.request.parameters.customer);
             var servicechange = parseInt(context.request.parameters.servicechange);
             var no_service_typs_ids = context.request.parameters.custpage_ids;
@@ -927,9 +936,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format, curren
             var financial_tab_item_array = context.request.parameters.financial_item_array;
             var financial_tab_price_array = context.request.parameters.financial_price_array;
 
-            //Update the RunScheduled box for the customer
-            // updateGreenTick(customer);
-
+            // Update the RunScheduled box for the customer
+            updateGreenTick(customer);
             
             /**
              * [params3 description] - Params passed to delete / edit / create the financial tab
@@ -945,22 +953,50 @@ function(ui, email, runtime, search, record, http, log, redirect, format, curren
             /**
              * Description - Schedule Script to create / edit / delete the financial tab items with the new details
              */
-
-            var status = task.create({
+            //TODO
+            var newtask = task.create({
                 taskType: task.TaskType.SCHEDULED_SCRIPT,
                 scriptId: 'customscript_sc_smc_item_pricing_update',
                 deploymentId: 'customdeploy1',
                 params: params3
             });
 
-            if(status == 'QUEUED'){
+            var taskID = newtask.submit(); //insufficient permission to submit
+
+            log.debug({
+                title: 'task id',
+                details: taskId,
+            });
+            
+            var status = newtask.checkStatus({
+                taskId: taskID
+            });
+
+            log.debug({
+                title: 'status',
+                details: status,
+            });
+
+            if(task.checkStatus(newtask) == 'QUEUED'){
+
                 if(isNullorEmpty(servicechange) || servicechange == 'F' || servicechange == 0){
+                    log.debug({
+                        title: 'Redirecting to smc main ',
+                        details: '',
+                    });
+
                     redirect.toSuitelet({
-                        scriptId: 'customscript_sl_smc_summary',
-                        deploymentId: 'customdeploy_sl_smc_summary',
+                        scriptId: 'customscript_service_pricing_review_2',
+                        deploymentId: 'customdeploy1',
                         parameters: null
                     });
                 }else {
+
+                    log.debug({
+                        title: 'Redirecting to edit services',
+                        details: '',
+                    });
+
                     redirect.toSuitelet({
                         scriptId: 'customscript_sl_servchg_customer_list',
                         deploymentId: 'customdeploy_sl_servchg_customer_list',
@@ -971,6 +1007,46 @@ function(ui, email, runtime, search, record, http, log, redirect, format, curren
             }
         }   
     }  
+
+
+    /**
+    * Update the Run Scheduled box for the customer ie if the customer if fully scheduled or not
+    * @params {Int} Customer ID
+    */
+    function updateGreenTick(customer_id){
+        var customerScheduled = true;
+        var serviceSearch = search.load({
+            type: 'customrecord_service',
+            id: 'customsearch_rp_services'
+        });
+
+        //Add filters
+        newFilter = search.createFilter({
+            name: 'custrecord_service_customer',
+            join: null,
+            operator: search.Operator.IS,
+            values: customer_id
+        });
+        serviceSearch.filters.push(newFilter);
+
+        //ignore MPEX Pickup
+        newFilter = search.createFilter({
+            name: 'internalid',
+            join: 'CUSTRECORD_SERVICE',
+            operator: search.Operator.NONEOF,
+            values: 24
+        });
+        serviceSearch.filters.push(newFilter);
+
+        serviceSearch.run().each(function (searchResult) {
+            var scheduleRun = searchResult.getValue("custrecord_service_run_scheduled", null, "GROUP");
+            if (scheduleRun == 2 || isNullorEmpty(scheduleRun)) {
+                customerScheduled = false;
+                return false;
+            }
+            return true;
+        })
+    }
 
     function createSearchFilter(name, join, operator, values){
         var filter = search.createFilter({
