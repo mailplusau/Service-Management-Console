@@ -6,8 +6,8 @@
  *
  * Remarks:  Client script for the Item Pricing Page       
  * 
- * @Last Modified by:   Ankith
- * @Last Modified time: 2019-12-11 13:54:48
+ * @Last Modified by:   Ankith Ravindran
+ * @Last Modified time: 2021-09-30 13:24:24
  *
  */
 
@@ -407,7 +407,6 @@ function onclick_back() {
     window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
 }
 
-
 /**
  * [updateServices description] - Update / create the services associated with this customer.
  */
@@ -441,9 +440,18 @@ function updateServices() {
             "AND", ["custrecord_franchisee", "is", franchisee] // partner id
         ];
 
-        commReg_search.setFilterExpression(filterExpression);
+        var newFilters = new Array();
+        newFilters[0] = new nlobjSearchFilter('custrecord_customer', null, 'anyof', customer);
+        newFilters[1] = new nlobjSearchFilter('custrecord_franchisee', null, 'anyof', franchisee);
+
+        console.log('filterExpression: ' + filterExpression);
+        // commReg_search.setFilterExpression(filterExpression);
+        commReg_search.addFilters(newFilters);
+
 
         var comm_reg_results = commReg_search.runSearch();
+
+        console.log('comm_reg_results: ' + comm_reg_results);
 
         var count_commReg = 0;
         var commReg = null;
@@ -466,8 +474,10 @@ function updateServices() {
             }
             return true;
         });
+        console.log('count_commReg++: ' + count_commReg++)
 
         if (isNullorEmpty(commReg)) {
+            console.log('No Comm Reg')
             alert('No Commencement Register associated with this customer. Please contact Head Office');
             return false;
         }
@@ -485,6 +495,14 @@ function updateServices() {
         var financial_tab_item_array = [];
         var financial_tab_price_array = [];
 
+        var service_records = [];
+        var service_records_price = [];
+        var service_records_desc = [];
+        var service_records_name = [];
+        var service_records_service = [];
+        var service_records_commreg = [];
+
+
 
         //Go through the list of all the new services
         for (y = 1; y <= nlapiGetLineItemCount('new_services'); y++) {
@@ -497,6 +515,8 @@ function updateServices() {
             var item_desc = nlapiGetLineItemValue('new_services', 'new_description', y);
             var change_row = nlapiGetLineItemValue('new_services', 'new_changerow', y);
             var date_review = nlapiGetLineItemValue('new_services', 'new_datereview', y);
+
+
 
             if (isNullorEmpty(item_desc)) {
                 item_desc = 0;
@@ -519,14 +539,20 @@ function updateServices() {
 
                 var service_type = nlapiLoadRecord('customrecord_service_type', item_list_value);
 
+
+
                 if (count_array[item_list_value] == undefined) {
                     count_array[item_list_value] = -1;
                 }
 
                 //If the service is discount, it is not created in the item list in the financial tab
                 if (item_list_value != 17) {
+                    console.log('item_list_value: ' + item_list_value)
+                    console.log('Item price array = ' + item_price_array);
                     //Get the size of the previously existing item and price array
                     var size = item_price_array[item_list_value].length;
+
+                    console.log('size: ' + size)
 
                     //if the size is 1, directly create in the financial tab
                     if (size == 1) {
@@ -566,73 +592,106 @@ function updateServices() {
                     }
                 }
 
+                console.log('After financial tab update');
+
                 if (change_row == 'T' || isNullorEmpty(date_review)) {
+                    console.log('Create/Update Service Record');
                     //if the service record exists and the prices match, update the service record.
+                    // if (!isNullorEmpty(service_record_id)) {
+                    //     var new_service_record = nlapiLoadRecord('customrecord_service', service_record_id);
+                    //     var service_record_price = new_service_record.getFieldValue('custrecord_service_price');
+                    //     var service_record_comm_reg = new_service_record.getFieldValue('custrecord_service_comm_reg');
+                    //     if (commReg == service_record_comm_reg) {
+                    //         new_service_record.setFieldValue('custrecord_service', item_list_value);
+                    //         new_service_record.setFieldValue('name', service_type.getFieldValue('name'));
+                    //         new_service_record.setFieldValue('custrecord_service_price', item_price_stored);
+                    //         new_service_record.setFieldValue('custrecord_service_description', nlapiGetLineItemValue('new_services', 'new_description', y));
+                    //         // new_service_record.setFieldValue('custrecord_service_franchisee', franchisee);
+
+                    //         if (!isNullorEmpty(commReg)) {
+                    //             new_service_record.setFieldValue('custrecord_service_comm_reg', commReg);
+
+                    //         }
+                    //     } else {
+                    //         var new_service_record = nlapiCreateRecord('customrecord_service', {
+                    //             recordmode: 'dynamic'
+                    //         });
+                    //         new_service_record.setFieldValue('custrecord_service', item_list_value);
+                    //         new_service_record.setFieldValue('name', service_type.getFieldValue('name'));
+                    //         new_service_record.setFieldValue('custrecord_service_price', item_price_stored);
+                    //         new_service_record.setFieldValue('custrecord_service_customer', customer);
+                    //         new_service_record.setFieldValue('custrecord_service_description', nlapiGetLineItemValue('new_services', 'new_description', y));
+                    //         if (!isNullorEmpty(commReg)) {
+                    //             new_service_record.setFieldValue('custrecord_service_comm_reg', commReg);
+
+                    //         }
+                    //     }
+
+                    //     // WS Edit: Add identifier for zee reviewed Services
+                    //     new_service_record.setFieldValue('custrecord_service_date_reviewed', getDate());
+
+                    //     var service_id = nlapiSubmitRecord(new_service_record);
+                    // } else {
+                    //     //If the service record does not exist, create a new service record.    
+                    //     var new_service_record = nlapiCreateRecord('customrecord_service', {
+                    //         recordmode: 'dynamic'
+                    //     });
+                    //     new_service_record.setFieldValue('custrecord_service', item_list_value);
+                    //     new_service_record.setFieldValue('name', service_type.getFieldValue('name'));
+                    //     new_service_record.setFieldValue('custrecord_service_price', item_price_stored);
+                    //     new_service_record.setFieldValue('custrecord_service_customer', customer);
+                    //     new_service_record.setFieldValue('custrecord_service_description', nlapiGetLineItemValue('new_services', 'new_description', y));
+                    //     if (!isNullorEmpty(commReg)) {
+                    //         new_service_record.setFieldValue('custrecord_service_comm_reg', commReg);
+
+                    //     }
+
+                    //     // WS Edit: Add identifier for zee reviewed Services
+                    //     new_service_record.setFieldValue('custrecord_service_date_reviewed', getDate());
+
+                    //     var service_id = nlapiSubmitRecord(new_service_record);
+                    // }
                     if (!isNullorEmpty(service_record_id)) {
-                        var new_service_record = nlapiLoadRecord('customrecord_service', service_record_id);
-                        var service_record_price = new_service_record.getFieldValue('custrecord_service_price');
-                        var service_record_comm_reg = new_service_record.getFieldValue('custrecord_service_comm_reg');
-                        if (commReg == service_record_comm_reg) {
-                            new_service_record.setFieldValue('custrecord_service', item_list_value);
-                            new_service_record.setFieldValue('name', service_type.getFieldValue('name'));
-                            new_service_record.setFieldValue('custrecord_service_price', item_price_stored);
-                            new_service_record.setFieldValue('custrecord_service_description', nlapiGetLineItemValue('new_services', 'new_description', y));
-                            // new_service_record.setFieldValue('custrecord_service_franchisee', franchisee);
-
-                            if (!isNullorEmpty(commReg)) {
-                                new_service_record.setFieldValue('custrecord_service_comm_reg', commReg);
-
-                            }
-                        } else {
-                            var new_service_record = nlapiCreateRecord('customrecord_service', {
-                                recordmode: 'dynamic'
-                            });
-                            new_service_record.setFieldValue('custrecord_service', item_list_value);
-                            new_service_record.setFieldValue('name', service_type.getFieldValue('name'));
-                            new_service_record.setFieldValue('custrecord_service_price', item_price_stored);
-                            new_service_record.setFieldValue('custrecord_service_customer', customer);
-                            new_service_record.setFieldValue('custrecord_service_description', nlapiGetLineItemValue('new_services', 'new_description', y));
-                            if (!isNullorEmpty(commReg)) {
-                                new_service_record.setFieldValue('custrecord_service_comm_reg', commReg);
-
-                            }
-                        }
-
-                        // WS Edit: Add identifier for zee reviewed Services
-                        new_service_record.setFieldValue('custrecord_service_date_reviewed', getDate());
-
-                        var service_id = nlapiSubmitRecord(new_service_record);
+                        service_records[y - 1] = service_record_id;
+                        service_records_service[y - 1] = item_list_value;
+                        service_records_name[y - 1] = service_type.getFieldValue('name');
+                        service_records_price[y - 1] = item_price_stored
+                        service_records_desc[y - 1] = nlapiGetLineItemValue('new_services', 'new_description', y);
+                        service_records_commreg[y - 1] = commReg;
                     } else {
-                        //If the service record does not exist, create a new service record.    
-                        var new_service_record = nlapiCreateRecord('customrecord_service', {
-                            recordmode: 'dynamic'
-                        });
-                        new_service_record.setFieldValue('custrecord_service', item_list_value);
-                        new_service_record.setFieldValue('name', service_type.getFieldValue('name'));
-                        new_service_record.setFieldValue('custrecord_service_price', item_price_stored);
-                        new_service_record.setFieldValue('custrecord_service_customer', customer);
-                        new_service_record.setFieldValue('custrecord_service_description', nlapiGetLineItemValue('new_services', 'new_description', y));
-                        if (!isNullorEmpty(commReg)) {
-                            new_service_record.setFieldValue('custrecord_service_comm_reg', commReg);
-
-                        }
-
-                        // WS Edit: Add identifier for zee reviewed Services
-                        new_service_record.setFieldValue('custrecord_service_date_reviewed', getDate());
-
-                        var service_id = nlapiSubmitRecord(new_service_record);
+                        service_records[y - 1] = 0;
+                        service_records_service[y - 1] = item_list_value;
+                        service_records_name[y - 1] = service_type.getFieldValue('name');
+                        service_records_price[y - 1] = item_price_stored
+                        service_records_desc[y - 1] = nlapiGetLineItemValue('new_services', 'new_description', y);
+                        service_records_commreg[y - 1] = commReg;
                     }
                 }
 
             }
+            console.log('y: ' + y);
         }
+
+        console.log('service_records_service: ' + service_records_service.toString())
 
 
         nlapiSetFieldValue('financial_item_array', financial_tab_item_array.toString());
         nlapiSetFieldValue('financial_price_array', financial_tab_price_array.toString());
+        nlapiSetFieldValue('service_records', service_records.toString());
+        nlapiSetFieldValue('service_records_service', service_records_service.toString());
+        nlapiSetFieldValue('service_records_name', service_records_name.toString());
+        nlapiSetFieldValue('service_records_price', service_records_price.toString());
+        nlapiSetFieldValue('service_records_desc', service_records_desc.toString());
+        nlapiSetFieldValue('service_records_commreg', service_records_commreg.toString());
+        nlapiSetFieldValue('financial_tab_pricing_notes', nlapiGetFieldValue('pricing_notes'));
 
-        recCustomer.setFieldValue('custentity_customer_pricing_notes', nlapiGetFieldValue('pricing_notes'));
-        nlapiSubmitRecord(recCustomer);
+
+        console.log('financial_item_array: ' + financial_item_array);
+        console.log('financial_price_array: ' + financial_price_array);
+
+        // recCustomer.setFieldValue('custentity_customer_pricing_notes', nlapiGetFieldValue('pricing_notes'));
+        // nlapiSubmitRecord(recCustomer);
+        console.log('Update Customer');
 
         return nlapiGetLineItemCount('new_services');
     }
@@ -649,7 +708,7 @@ function saveRecord(destination) {
         var result = updateServices();
     }
 
-
+    console.log('result: ' + result);
     if (result == false) {
         return false;
     }

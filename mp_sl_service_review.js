@@ -6,8 +6,8 @@
  *
  * Remarks: Page to review all the item lists and service records. Change the price or create package or add new service types         
  * 
- * @Last Modified by:   ankit
- * @Last Modified time: 2020-10-29 10:59:05
+ * @Last Modified by:   Ankith Ravindran
+ * @Last Modified time: 2021-09-30 13:24:22
  *
  */
 
@@ -38,7 +38,7 @@ function getDataCenterURL_systemURL() {
     /* The variable above was properly escaped and has no line breaks, apparently using the nlapiEscapeXML() does not resolve this because this is declared as a String not an XML type */
 
     var sUrl = "https://webservices.netsuite.com/services/NetSuitePort_2014_2"
-        /* use the latest webservice URL to call the getDataCenterURLs command. */
+    /* use the latest webservice URL to call the getDataCenterURLs command. */
 
     resp = nlapiRequestURL(sUrl, xml, headers); // creates and calls the web service request
 
@@ -279,6 +279,13 @@ function main(request, response) {
             form.addField('servicechange', 'text', 'servicechange').setDisplayType('hidden').setDefaultValue(servicechange);
             form.addField('financial_item_array', 'textarea', 'Financial').setDisplayType('hidden');
             form.addField('financial_price_array', 'textarea', 'Financial').setDisplayType('hidden');
+            form.addField('financial_tab_pricing_notes', 'textarea', 'Financial').setDisplayType('hidden');
+            form.addField('service_records', 'textarea', 'Financial').setDisplayType('hidden');
+            form.addField('service_records_service', 'textarea', 'Financial').setDisplayType('hidden');
+            form.addField('service_records_name', 'textarea', 'Financial').setDisplayType('hidden');
+            form.addField('service_records_price', 'textarea', 'Financial').setDisplayType('hidden');
+            form.addField('service_records_desc', 'textarea', 'Financial').setDisplayType('hidden');
+            form.addField('service_records_commreg', 'textarea', 'Financial').setDisplayType('hidden');
             form.addField('lon_array', 'textarea', 'Longitude').setDisplayType('hidden');
             form.addField('lat_array', 'textarea', 'Latitude').setDisplayType('hidden');
 
@@ -529,6 +536,87 @@ function main(request, response) {
         var linked_service_ids = request.getParameter('linked_custpage_ids');
         var financial_tab_item_array = request.getParameter('financial_item_array');
         var financial_tab_price_array = request.getParameter('financial_price_array');
+        var financial_tab_pricing_notes = request.getParameter('financial_tab_pricing_notes');
+        var service_records_string = (request.getParameter('service_records'));
+        var service_records_service_string = (request.getParameter('service_records_service'));
+        var service_records_name_string = (request.getParameter('service_records_name'));
+        var service_records_price_string = (request.getParameter('service_records_price'));
+        var service_records_desc_string = (request.getParameter('service_records_desc'));
+        var service_records_commreg_string = (request.getParameter('service_records_commreg'));
+
+        var service_records_array = service_records_string.split(',');
+        var service_records_service_array = service_records_service_string.split(',');
+        var service_records_name_array = service_records_name_string.split(',');
+        var service_records_price_array = service_records_price_string.split(',');
+        var service_records_desc_array = service_records_desc_string.split(',');
+        var service_records_commreg_array = service_records_commreg_string.split(',');
+
+        var service_length = service_records_array.length;
+
+        nlapiLogExecution('DEBUG', 'service_length', service_length);
+        nlapiLogExecution('DEBUG', 'service_records_string', service_records_string);
+        nlapiLogExecution('DEBUG', 'service_records_array', service_records_array);
+
+        for (var x = 0; x < service_length; x++) {
+            if (!isNullorEmpty(service_records_array[x])) {
+                nlapiLogExecution('DEBUG', 'service_records_array[x]', service_records_array[x]);
+                if (service_records_array[x] == '0') {
+                    nlapiLogExecution('DEBUG', 'Create New Service', service_records_array[x]);
+                    var new_service_record = nlapiCreateRecord('customrecord_service', {
+                        recordmode: 'dynamic'
+                    });
+                    new_service_record.setFieldValue('custrecord_service', service_records_service_array[x]);
+                    new_service_record.setFieldValue('name', service_records_name_array[x]);
+                    new_service_record.setFieldValue('custrecord_service_price', service_records_price_array[x]);
+                    new_service_record.setFieldValue('custrecord_service_customer', customer);
+                    new_service_record.setFieldValue('custrecord_service_description', service_records_desc_array[x]);
+                    if (!isNullorEmpty(service_records_commreg_array[x])) {
+                        new_service_record.setFieldValue('custrecord_service_comm_reg', service_records_commreg_array[x]);
+
+                    }
+                } else {
+                    nlapiLogExecution('DEBUG', 'Update Service', service_records_array[x]);
+                    var new_service_record = nlapiLoadRecord('customrecord_service', service_records_array[x]);
+                    var service_record_price = new_service_record.getFieldValue('custrecord_service_price');
+                    var service_record_comm_reg = new_service_record.getFieldValue('custrecord_service_comm_reg');
+                    if (service_records_commreg_array[x] == service_record_comm_reg) {
+                        new_service_record.setFieldValue('custrecord_service', service_records_service_array[x]);
+                        new_service_record.setFieldValue('name', service_records_name_array[x]);
+                        new_service_record.setFieldValue('custrecord_service_price', service_records_price_array[x]);
+                        new_service_record.setFieldValue('custrecord_service_description', service_records_desc_array[x]);
+                        // new_service_record.setFieldValue('custrecord_service_franchisee', franchisee);
+
+                        if (!isNullorEmpty(service_records_commreg_array[x])) {
+                            new_service_record.setFieldValue('custrecord_service_comm_reg', service_records_commreg_array[x]);
+
+                        }
+                    } else {
+                        var new_service_record = nlapiCreateRecord('customrecord_service', {
+                            recordmode: 'dynamic'
+                        });
+                        new_service_record.setFieldValue('custrecord_service', service_records_service_array[x]);
+                        new_service_record.setFieldValue('name', service_records_name_array[x]);
+                        new_service_record.setFieldValue('custrecord_service_price', service_records_price_array[x]);
+                        new_service_record.setFieldValue('custrecord_service_customer', customer);
+                        new_service_record.setFieldValue('custrecord_service_description', service_records_desc_array[x]);
+                        if (!isNullorEmpty(service_records_commreg_array[x])) {
+                            new_service_record.setFieldValue('custrecord_service_comm_reg', service_records_commreg_array[x]);
+
+                        }
+                    }
+
+                }
+
+                // WS Edit: Add identifier for zee reviewed Services
+                new_service_record.setFieldValue('custrecord_service_date_reviewed', getDate());
+
+                var service_id = nlapiSubmitRecord(new_service_record);
+            }
+        }
+
+        var recCustomer = nlapiLoadRecord('customer', customer);
+        recCustomer.setFieldValue('custentity_customer_pricing_notes', financial_tab_pricing_notes);
+        nlapiSubmitRecord(recCustomer);
 
         //Update the RunScheduled box for the customer
         updateGreenTick(customer);
